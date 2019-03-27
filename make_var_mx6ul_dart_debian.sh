@@ -58,7 +58,7 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
 G_LINUX_KERNEL_GIT="https://github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
-readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
+readonly G_LINUX_KERNEL_BRANCH="VLK-51"
 readonly G_LINUX_KERNEL_DEF_CONFIG='imx6ul-var-dart-twonav_defconfig'
 readonly G_LINUX_DTB='imx6ul-var-dart-emmc_wifi.dtb imx6ul-var-dart-nand_wifi.dtb imx6ul-var-dart-sd_emmc.dtb imx6ul-var-dart-sd_nand.dtb imx6ull-var-dart-emmc_wifi.dtb imx6ull-var-dart-sd_emmc.dtb imx6ull-var-dart-nand_wifi.dtb imx6ull-var-dart-sd_nand.dtb imx6ul-var-dart-5g-emmc_wifi.dtb imx6ull-var-dart-5g-emmc_wifi.dtb imx6ul-var-dart-5g-nand_wifi.dtb imx6ull-var-dart-5g-nand_wifi.dtb'
 
