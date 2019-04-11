@@ -51,7 +51,7 @@ readonly DEF_ROOTFS_TARBAR_NAME="rootfs.tar.bz2"
 ## base paths
 readonly DEF_BUILDENV="${ABSOLUTE_DIRECTORY}"
 readonly DEF_SRC_DIR="${DEF_BUILDENV}/src"
-readonly G_ROOTFS_DIR="${DEF_BUILDENV}/rootfs"
+readonly G_ROOTFS_DIR="${DEF_BUILDENV}/twonav_imx6rootfs/rootfs"
 readonly G_TMP_DIR="${DEF_BUILDENV}/tmp"
 readonly G_TOOLS_PATH="${DEF_BUILDENV}/toolchain"
 readonly G_VARISCITE_PATH="${DEF_BUILDENV}/variscite"
@@ -1154,6 +1154,9 @@ function cmd_make_deploy() {
 		rm -rf ${G_TMP_DIR}/${G_EXT_CROSS_COMPILER_NAME} && :;
 	};
 
+	# TODO: get rootfs for SVN tracking
+	#### svn checkout https://twonav.unfuddle.com/svn/twonav_imx6rootfs/ twonav_imx6rootfs
+
 	return 0;
 }
 
@@ -1180,30 +1183,6 @@ function cmd_make_rootfs() {
 		return 1;
 	}
 	cd -
-
-	## make and apply modules in rootfs
-	make_kernel_modules ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_DEF_CONFIG} ${G_LINUX_KERNEL_SRC_DIR} ${G_ROOTFS_DIR} || {
-		pr_error "Failed #$? in function make_kernel_modules"
-		return 2;
-	}
-
-	## make kernel package
-	build_kernel_package ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_SRC_DIR} ${G_ROOTFS_DIR} ${PARAM_OUTPUT_DIR} || {
-		pr_error "Failed #$? in function build_kernel_package"
-		return 1;
-	};
-
-	## pack rootfs
-	make_tarbar ${G_ROOTFS_DIR} ${G_ROOTFS_TARBAR_PATH} || {
-		pr_error "Failed #$? in function make_tarbar"
-		return 4;
-	}
-
-	## pack to ubi
-	make_ubi ${G_ROOTFS_DIR} ${G_TMP_DIR} ${PARAM_OUTPUT_DIR} ${G_UBI_FILE_NAME}  || {
-		pr_error "Failed #$? in function make_ubi"
-		return 5;
-	};
 
 	return 0;
 }
@@ -1295,6 +1274,12 @@ function cmd_make_rfs_tar() {
 
 function cmd_make_sdcard() {
 	make_prepare;
+
+	## pack to ubi
+	make_ubi ${G_ROOTFS_DIR} ${G_TMP_DIR} ${PARAM_OUTPUT_DIR} ${G_UBI_FILE_NAME}  || {
+		pr_error "Failed #$? in function make_ubi"
+		return 5;
+	};
 
 	make_sdcard ${PARAM_BLOCK_DEVICE} ${PARAM_OUTPUT_DIR} || {
 		pr_error "Failed #$? in function make_sdcard"
