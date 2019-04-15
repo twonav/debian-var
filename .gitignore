@@ -64,6 +64,7 @@ GSYMS
 GTAGS
 
 # ignored dirs
+twonav_imx6rootfs
 rootfs
 output
 src
