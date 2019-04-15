@@ -48,10 +48,13 @@ readonly DEF_DEBIAN_MIRROR="http://ftp.de.debian.org/debian/"
 readonly DEB_RELEASE="jessie"
 readonly DEF_ROOTFS_TARBAR_NAME="rootfs.tar.bz2"
 
+## rootfs
+readonly G_ROOTFS_REPO_DIR="${DEF_BUILDENV}/twonav_imx6rootfs"
+
 ## base paths
 readonly DEF_BUILDENV="${ABSOLUTE_DIRECTORY}"
 readonly DEF_SRC_DIR="${DEF_BUILDENV}/src"
-readonly G_ROOTFS_DIR="${DEF_BUILDENV}/twonav_imx6rootfs/rootfs"
+readonly G_ROOTFS_DIR="${G_ROOTFS_REPO_DIR}/rootfs"
 readonly G_TMP_DIR="${DEF_BUILDENV}/tmp"
 readonly G_TOOLS_PATH="${DEF_BUILDENV}/toolchain"
 readonly G_VARISCITE_PATH="${DEF_BUILDENV}/variscite"
@@ -278,6 +281,17 @@ function get_git_src() {
 function git_update() {
 	cd ${1}
 	git pull
+	RET=$?
+	cd -
+	return $RET
+}
+
+# update sources from git repository
+# $1 - output dir
+# $2 - credential url
+function svn_update() {
+	cd ${1}
+	svn update
 	RET=$?
 	cd -
 	return $RET
@@ -1154,7 +1168,7 @@ function cmd_make_deploy() {
 		rm -rf ${G_TMP_DIR}/${G_EXT_CROSS_COMPILER_NAME} && :;
 	};
 
-	# TODO: get rootfs for SVN tracking
+	# TODO: get rootfs for SVN tracking, credentials missing (http://ikeptwalking.com/how-to-checkout-code-in-jenkins-pipeline/)
 	#### svn checkout https://twonav.unfuddle.com/svn/twonav_imx6rootfs/ twonav_imx6rootfs
 
 	return 0;
@@ -1168,6 +1182,9 @@ function cmd_update_repositories() {
 
 	pr_info "Updating uboot repository";
 	git_update ${G_UBOOT_SRC_DIR}
+
+	pr_info "Updating rootfs repository";
+	svn_update ${G_ROOTFS_REPO_DIR}
 
 	return 0;
 }
