@@ -38,22 +38,22 @@ pipeline {
 
     stage('Build Kernel and package') {
       stages {
-        stage('Cleanup') {
+        stage('Cleanup Aventura') {
           steps {
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
           }
         }
-        stage('Aventura') {
+        stage('Kernel Aventura') {
           steps {
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
           }
         }
-        stage('Cleanup') {
+        stage('Cleanup Trail') {
           steps {
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
           }
         }
-        stage('Trail') {
+        stage('Kernel Trail') {
           steps {
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_TRAIL -o $TRAIL_OUTPUT_DIR'
           }
