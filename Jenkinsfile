@@ -20,6 +20,7 @@ pipeline {
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
         			usernameVariable: 'USERNAME', 
         			passwordVariable: 'PASSWORD')]) {
+          sh 'echo Deploying'
           sh './make_var_mx6ul_dart_debian.sh -c deploy -u $USERNAME -p $PASSWORD'
         }
       }
@@ -30,7 +31,8 @@ pipeline {
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
         			usernameVariable: 'USERNAME', 
         			passwordVariable: 'PASSWORD')]) {
-          sh './make_var_mx6ul_dart_debian.sh -c update'
+          sh 'echo Updating'
+          sh './make_var_mx6ul_dart_debian.sh -c update -u $USERNAME -p $PASSWORD'
         }
 
       }
@@ -40,11 +42,13 @@ pipeline {
       stages {
         stage('Cleanup Aventura') {
           steps {
+            sh 'echo Cleaning'
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
           }
         }
         stage('Kernel Aventura') {
           steps {
+            sh 'echo Building'
             sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
           }
         }
