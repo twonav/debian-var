@@ -7,6 +7,13 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '2'))
   }
 
+  environment {
+    PRODUCT_AVENTURA = 'twonav-aventura-2018'
+    PRODUCT_TRAIL = 'twonav-trail-2018'
+    AVENTURA_OUTPUT_DIR = 'output-aventura'
+    TRAIL_OUTPUT_DIR = 'output-trail'
+  }
+
   stages {
     stage('Deploy') {
       steps {
@@ -29,22 +36,26 @@ pipeline {
       }
     }
 
-    stage('Cleanup') {
-      steps {
-        sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
-      }
-    }
-
     stage('Build Kernel and package') {
       stages {
+        stage('Cleanup') {
+          steps {
+            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
+          }
+        }
         stage('Aventura') {
           steps {
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t twonav-aventura-2018'
+            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
+          }
+        }
+        stage('Cleanup') {
+          steps {
+            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
           }
         }
         stage('Trail') {
           steps {
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t twonav-trail-2018'
+            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_TRAIL -o $TRAIL_OUTPUT_DIR'
           }
         }
       }
@@ -54,7 +65,7 @@ pipeline {
   post {
     success {
       echo 'Save Artifacts'
-      archiveArtifacts artifacts: 'output/*.deb', onlyIfSuccessful: true
+      archiveArtifacts artifacts: '$AVENTURA_OUTPUT_DIR/*.deb,$TRAIL_OUTPUT_DIR/*.deb', onlyIfSuccessful: true
     }
 
     always {
