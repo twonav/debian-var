@@ -15,6 +15,13 @@ pipeline {
   }
 
   stages {
+    stage('Cleaning') {
+      steps {
+        sh 'sudo rm -rf ./*'
+        sh 'git reset --hard HEAD'
+      }
+    }
+
     stage('Deploy') {
       steps {
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
