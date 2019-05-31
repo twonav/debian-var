@@ -10,8 +10,8 @@ pipeline {
   environment {
     PRODUCT_AVENTURA = 'twonav-aventura-2018'
     PRODUCT_TRAIL = 'twonav-trail-2018'
-    AVENTURA_OUTPUT_DIR = 'output-aventura'
-    TRAIL_OUTPUT_DIR = 'output-trail'
+    AVENTURA_OUTPUT_DIR = $PWD'/output-aventura'
+    TRAIL_OUTPUT_DIR = $PWD'/output-trail'
   }
 
   stages {
