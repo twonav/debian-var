@@ -37,31 +37,6 @@ pipeline {
 
       }
     }
-
-    stage('Build Kernel and package') {
-      stage('Cleanup Aventura') {
-        steps {
-          sh 'echo Cleaning'
-          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
-        }
-      }
-      stage('Kernel Aventura') {
-        steps {
-          sh 'echo Building'
-          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
-        }
-      }
-      stage('Cleanup Trail') {
-        steps {
-          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
-        }
-      }
-      stage('Kernel Trail') {
-        steps {
-          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_TRAIL -o $TRAIL_OUTPUT_DIR'
-        }
-      }
-    }
   }
 
   post {
