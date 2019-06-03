@@ -40,11 +40,6 @@ pipeline {
   }
 
   post {
-    success {
-      echo 'Save Artifacts'
-      archiveArtifacts artifacts: '$AVENTURA_OUTPUT_DIR/*.deb,$TRAIL_OUTPUT_DIR/*.deb', onlyIfSuccessful: true
-    }
-
     always {
       echo 'Pipeline finished.'
     }
