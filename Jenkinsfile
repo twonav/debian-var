@@ -15,12 +15,16 @@ pipeline {
   }
 
   stages {
+    stage ('Test'{
+      echo 'TEST'
+    }
+
     stage('Deploy') {
       steps {
         echo 'Deploy'
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
-        			usernameVariable: 'USERNAME', 
-        			passwordVariable: 'PASSWORD')]) {
+              usernameVariable: 'USERNAME', 
+              passwordVariable: 'PASSWORD')]) {
           sh 'echo Deploying'
           sh './make_var_mx6ul_dart_debian.sh -c deploy -u $USERNAME -p $PASSWORD'
         }
@@ -42,13 +46,13 @@ pipeline {
   }
 
   post {
-    success {
-      echo 'Save Artifacts'
-      //archiveArtifacts artifacts: '$AVENTURA_OUTPUT_DIR/*.deb,$TRAIL_OUTPUT_DIR/*.deb', onlyIfSuccessful: true
-    }
-
     always {
       echo 'Pipeline finished.'
+    }
+
+    success {
+      echo 'Saving Artifacts'
+      //archiveArtifacts artifacts: '$AVENTURA_OUTPUT_DIR/*.deb,$TRAIL_OUTPUT_DIR/*.deb', onlyIfSuccessful: true
     }
   }
 }
