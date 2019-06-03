@@ -15,13 +15,6 @@ pipeline {
   }
 
   stages {
-    stage('Cleaning') {
-      steps {
-        sh 'sudo rm -rf ./*'
-        sh 'git reset --hard HEAD'
-      }
-    }
-
     stage('Deploy') {
       steps {
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
@@ -46,28 +39,26 @@ pipeline {
     }
 
     stage('Build Kernel and package') {
-      stages {
-        stage('Cleanup Aventura') {
-          steps {
-            sh 'echo Cleaning'
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
-          }
+      stage('Cleanup Aventura') {
+        steps {
+          sh 'echo Cleaning'
+          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
         }
-        stage('Kernel Aventura') {
-          steps {
-            sh 'echo Building'
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
-          }
+      }
+      stage('Kernel Aventura') {
+        steps {
+          sh 'echo Building'
+          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_AVENTURA -o $AVENTURA_OUTPUT_DIR'
         }
-        stage('Cleanup Trail') {
-          steps {
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
-          }
+      }
+      stage('Cleanup Trail') {
+        steps {
+          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c clean'
         }
-        stage('Kernel Trail') {
-          steps {
-            sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_TRAIL -o $TRAIL_OUTPUT_DIR'
-          }
+      }
+      stage('Kernel Trail') {
+        steps {
+          sh 'sudo ./make_var_mx6ul_dart_debian.sh -c package -t $PRODUCT_TRAIL -o $TRAIL_OUTPUT_DIR'
         }
       }
     }
