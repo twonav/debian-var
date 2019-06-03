@@ -16,8 +16,8 @@ pipeline {
 
   stages {
     stage('Deploy') {
-      echo 'Deploy step'
       steps {
+        echo 'Deploy'
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
         			usernameVariable: 'USERNAME', 
         			passwordVariable: 'PASSWORD')]) {
@@ -28,8 +28,8 @@ pipeline {
     }
 
     stage('Update') {
-      echo 'Update step'
       steps {
+        echo 'Update'
         withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
         			usernameVariable: 'USERNAME', 
         			passwordVariable: 'PASSWORD')]) {
