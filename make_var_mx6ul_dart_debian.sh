@@ -92,9 +92,11 @@ readonly G_EXTRAS_PACKAGES="ttf-ubuntu-font-family libsdl2-dev"
 PARAM_DEB_LOCAL_MIRROR="${DEF_DEBIAN_MIRROR}"
 PARAM_OUTPUT_DIR="${DEF_BUILDENV}/output"
 PARAM_DEBUG="0"
-PARAM_REBUILD="0"
 PARAM_CMD="all"
 PARAM_BLOCK_DEVICE="na"
+
+# TwoNav-specific:
+PARAM_REBUILD="0"
 PARAM_KERNEL_NAME=""
 PARAM_CREDENTIALS="0"
 PARAM_USERNAME=""
@@ -119,15 +121,24 @@ function usage() {
 	echo "  -c|--cmd <command>"
 	echo "     Supported commands:"
 	echo "       deploy      		-- prepare environment for all commands"
+
+	# TwoNav-specific:
 	echo "       -u          		-- set username to checkout repositories. It does not work with e-mails"
 	echo "       -p          		-- set password to checkout repositories"
+
 	echo "       all         		-- build or rebuild kernel/bootloader/rootfs"
 	echo "       bootloader  		-- build or rebuild bootloader (u-boot+SPL)"
 	echo "       kernel      		-- build or rebuild linux kernel for this board"
+
+	# TwoNav-specific:
 	echo "       package     		-- build or rebuild linux kernel package for this board"
+
 	echo "       modules     		-- build or rebuild linux kernel modules and install in rootfs directory for this board"
+
+	# TwoNav-specific:
 	echo "       kernel_to_sd		-- copy kernel and modules contents to sdcard"
 	echo "       -r|--rebuild		-- rebuild kernel and modules"
+
 	echo "       rootfs      		-- build or rebuild debian rootfs filesystem (includes: make debian apks, make and install kernel moduled,"
 	echo "                   		   make and install extern modules (wifi/bt), create rootfs.ubi.img and rootfs.tar.bz2)"
 	echo "       rubi        		-- generate or regenerate rootfs.ubi.img image from rootfs folder "
@@ -137,6 +148,8 @@ function usage() {
 	echo "       -o|--output 		-- custom select output directory (default: \"${PARAM_OUTPUT_DIR}\")"
 	echo "       -d|--dev    		-- select sdcard device (exmple: -d /dev/sde)"
 	echo "       --debug     		-- enable debug mode for this script"
+
+	# TwoNav-specific:
 	echo "       -k|--instpkg		-- install package in rootfs"
 	echo "       -t|--type   		-- twonav-aventura-2018/twonav-trail-2018"
 	echo "Examples of use:"
@@ -223,20 +236,25 @@ done
 ## declarate dinamic variables ##
 readonly G_ROOTFS_TARBAR_PATH="${PARAM_OUTPUT_DIR}/${DEF_ROOTFS_TARBAR_NAME}"
 
-## device type: twonav-aventura/trail-2018
-readonly DEVICE="$PARAM_DEVICE_TYPE"
+twonav_kernel_globals() {
+	## device type: twonav-aventura/trail-2018
+	readonly DEVICE="$PARAM_DEVICE_TYPE"
 
-#Provisional until we define different kernels on the go.
-readonly KERNEL_NAME="4.1.15-"$DEVICE
+	#Provisional until we define different kernels on the go.
+	readonly KERNEL_NAME="4.1.15-"$DEVICE
 
-# Parse kernel version from file
-readonly TWONAV_KERNEL_VERSION_PATH="${G_LINUX_KERNEL_SRC_DIR}/twonav_kernel_version"
+	# Parse kernel version from file
+	readonly TWONAV_KERNEL_VERSION_PATH="${G_LINUX_KERNEL_SRC_DIR}/twonav_kernel_version"
 
-## defconfig
-readonly G_LINUX_KERNEL_DEF_CONFIG="imx6ul-var-dart-${DEVICE}_defconfig"
+	## defconfig
+	readonly G_LINUX_KERNEL_DEF_CONFIG="imx6ul-var-dart-${DEVICE}_defconfig"
 
-readonly G_KERNEL_PACKAGES="linux-headers-4.1.15-$DEVICE linux-image-4.1.15-$DEVICE"
-readonly G_TWONAV_PACKAGES=$DEVICE
+	readonly G_KERNEL_PACKAGES="linux-headers-4.1.15-$DEVICE linux-image-4.1.15-$DEVICE"
+	readonly G_TWONAV_PACKAGES=$DEVICE
+}
+
+twonav_kernel_globals
+
 
 ###### local functions ######
 
@@ -352,35 +370,13 @@ function make_debian_rootfs() {
 echo "deb $PARAM_DEB_LOCAL_MIRROR ${DEB_RELEASE} main contrib non-free
 " > etc/apt/sources.list
 
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/TwoNav/" >> etc/apt/sources.list.d/twonav.list
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Kernel/" >> etc/apt/sources.list.d/twonav.list
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Extras/" >> etc/apt/sources.list.d/twonav.list
-
 echo "
 # /dev/mmcblk0p1  /boot           vfat    defaults        0       0
 " > etc/fstab
 
-echo "twonav" > etc/hostname
-
 echo "auto lo
 iface lo inet loopback
 " > etc/network/interfaces
-
-## twonav extra paths and files
-
-mkdir etc/twonav
-echo "1234-5678-7654" > etc/twonav/VeloDevID.txt
-
-mkdir opt/twonav
-cp -r ${G_TWONAV_PATH}/recovery opt/twonav
-cp -r ${G_TWONAV_PATH}/tools/* bin
-cp -r ${G_TWONAV_PATH}/scripts/* opt/twonav
-
-echo "
-if [ -f /etc/bash_completion ]; then
- . /etc/bash_completion
-fi
-" >> etc/profile
 
 echo "
 locales locales/locales_to_be_generated multiselect en_US.UTF-8 UTF-8
@@ -573,25 +569,9 @@ if [ \$? -gt 0 ]; then
 	echo -e \"${BACKGROUND_RED} ERROR in apt-get install EXTRAS_PACKAGES ${BACKGROUND_BLACK}\"
 fi
 
-echo -e \"${BACKGROUND_GREEN} Purging KERNEL_PACKAGES... ${BACKGROUND_BLACK}\"
-apt-get -y --force-yes purge ${G_KERNEL_PACKAGES}
-if [ \$? -gt 0 ]; then
-	echo -e \"${BACKGROUND_RED} ERROR in apt-get purge KERNEL_PACKAGES ${BACKGROUND_BLACK}\"
-fi
-
-echo -e \"${BACKGROUND_GREEN} Installing KERNEL_PACKAGES... ${BACKGROUND_BLACK}\"
-DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install ${G_KERNEL_PACKAGES}
-if [ \$? -gt 0 ]; then
-	echo -e \"${BACKGROUND_RED} ERROR in apt-get install KERNEL_PACKAGES ${BACKGROUND_BLACK}\"
-fi
-
-echo -e \"${BACKGROUND_GREEN} Installing TWONAV_PACKAGES... ${BACKGROUND_BLACK}\"
-apt-get -y --force-yes install ${G_TWONAV_PACKAGES}
-if [ \$? -gt 0 ]; then
-	echo -e \"${BACKGROUND_RED} ERROR in apt-get install TWONAV_PACKAGES ${BACKGROUND_BLACK}\"
-fi
-
 echo -e \"${BACKGROUND_GREEN} SUCCESS user-stage ${BACKGROUND_BLACK}\"
+
+# kernel and twonav moved to make_debian_rootfs_delta_twonav()
 
 rm -f user-stage
 " > user-stage
@@ -669,6 +649,12 @@ echo "#deb ${DEF_DEBIAN_MIRROR} ${DEB_RELEASE} main contrib non-free
 echo "deb ${DEF_DEBIAN_MIRROR} ${DEB_RELEASE} main contrib non-free
 " > etc/apt/sources.list.save
 
+	# cleanup moved to make_debian_rootfs_clean()
+
+	return 0;
+}
+
+function make_debian_rootfs_clean() {
 	pr_info "rootfs: clean"
 
 ## clenup command
@@ -681,7 +667,63 @@ rm -f cleanup
 	chmod +x cleanup
 	LANG=C chroot ${ROOTFS_BASE} /cleanup
 	umount ${ROOTFS_BASE}/{sys,proc,dev/pts,dev}
-	return 0;
+}
+
+function make_debian_rootfs_delta_twonav() {
+	echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/TwoNav/" >> etc/apt/sources.list.d/twonav.list
+	echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Kernel/" >> etc/apt/sources.list.d/twonav.list
+	echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Extras/" >> etc/apt/sources.list.d/twonav.list
+
+	echo "twonav" > etc/hostname
+
+	## twonav extra paths and files
+
+	mkdir etc/twonav
+	echo "1234-5678-7654" > etc/twonav/VeloDevID.txt
+
+	mkdir opt/twonav
+	cp -r ${G_TWONAV_PATH}/recovery opt/twonav
+	cp -r ${G_TWONAV_PATH}/tools/* bin
+	cp -r ${G_TWONAV_PATH}/scripts/* opt/twonav
+
+	echo "
+	if [ -f /etc/bash_completion ]; then
+	 . /etc/bash_completion
+	fi
+	" >> etc/profile
+
+[ "${G_KERNEL_PACKAGES}" != "" ] && [ "${G_TWONAV_PACKAGES}" != "" ] && {
+
+	pr_info "rootfs: install kernel and twonav packages (twonav-stage)"
+	pr_info "rootfs: G_KERNEL_PACKAGES \"${G_KERNEL_PACKAGES}\" "
+	pr_info "rootfs: G_TWONAV_PACKAGES \"${G_TWONAV_PACKAGES}\" "
+
+echo "#!/bin/bash
+# update packages
+apt-get update
+echo -e \"${BACKGROUND_GREEN} Purging KERNEL_PACKAGES... ${BACKGROUND_BLACK}\"
+apt-get -y --force-yes purge ${G_KERNEL_PACKAGES}
+if [ \$? -gt 0 ]; then
+	echo -e \"${BACKGROUND_RED} ERROR in apt-get purge KERNEL_PACKAGES ${BACKGROUND_BLACK}\"
+fi
+
+echo -e \"${BACKGROUND_GREEN} Installing KERNEL_PACKAGES... ${BACKGROUND_BLACK}\"
+DEBIAN_FRONTEND=noninteractive apt-get -y --force-yes install ${G_KERNEL_PACKAGES}
+if [ \$? -gt 0 ]; then
+	echo -e \"${BACKGROUND_RED} ERROR in apt-get install KERNEL_PACKAGES ${BACKGROUND_BLACK}\"
+fi
+
+echo -e \"${BACKGROUND_GREEN} Installing TWONAV_PACKAGES... ${BACKGROUND_BLACK}\"
+apt-get -y --force-yes install ${G_TWONAV_PACKAGES}
+if [ \$? -gt 0 ]; then
+	echo -e \"${BACKGROUND_RED} ERROR in apt-get install TWONAV_PACKAGES ${BACKGROUND_BLACK}\"
+fi
+rm -f twonav-stage
+" > twonav-stage
+
+	chmod +x twonav-stage
+	LANG=C chroot ${ROOTFS_BASE} /twonav-stage
+};
 }
 
 # make tarbar arx from footfs
@@ -1184,8 +1226,11 @@ function cmd_update_repositories() {
 	return 0;
 }
 
-function cmd_make_rootfs() {
+# rootfs without kernel nor tarball stuff
+function cmd_make_rootfs_base() {
 	make_prepare;
+
+	G_ROOTFS_DIR=$G_ROOTFS_DIR-base
 
 	## make debian rootfs
 	cd ${G_ROOTFS_DIR}
@@ -1196,17 +1241,52 @@ function cmd_make_rootfs() {
 	}
 	cd -
 
+	return 0;
+}
+
+# custom kernel stuff
+function cmd_make_rootfs_delta() {
+	local R ROOTFS_BASE=$1 ROOTFS_OUT KERNEL_OUT
+
+	if [ "$ROOTFS_BASE" != "" ] ; then
+		# custom-build delta
+		if [ "$PARAM_DEVICE_TYPE" = "" ] ; then
+			echo "Missing device type (use -t or --type)" >&2
+			return 1
+		fi
+		ROOTFS_OUT="$G_ROOTFS_DIR-$PARAM_DEVICE_TYPE"
+		KERNEL_OUT="output-$PARAM_DEVICE_TYPE"
+		if [ -e "$ROOTFS_OUT" ] ; then rm -rf "$ROOTFS_OUT" ; fi
+		mkdir -p "$ROOTFS_OUT"
+		cp -ra "$ROOTFS_BASE" "$ROOTFS_OUT"
+	else
+		ROOTFS_OUT="$G_ROOTFS_DIR"
+		KERNEL_OUT=output
+	fi
+
 	## make and apply modules in rootfs
-	make_kernel_modules ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_DEF_CONFIG} ${G_LINUX_KERNEL_SRC_DIR} ${G_ROOTFS_DIR} || {
+	make_kernel_modules ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_DEF_CONFIG} ${G_LINUX_KERNEL_SRC_DIR} ${ROOTFS_OUT} || {
 		pr_error "Failed #$? in function make_kernel_modules"
 		return 2;
 	}
 
 	## make kernel package
-	build_kernel_package ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_SRC_DIR} ${G_ROOTFS_DIR} ${PARAM_OUTPUT_DIR} || {
+	build_kernel_package ${G_CROSS_COMPILEER_PATH}/${G_CROSS_COMPILEER_PREFFIX} ${G_LINUX_KERNEL_SRC_DIR} ${ROOTFS_OUT} ${PARAM_OUTPUT_DIR} || {
 		pr_error "Failed #$? in function build_kernel_package"
 		return 1;
 	};
+
+	make_debian_rootfs_delta_twonav     ; R=$? ; if ((R)) ; then return $R ; fi
+	make_debian_rootfs_clean            ; R=$? ; if ((R)) ; then return $R ; fi
+
+	return 0;
+}
+
+function cmd_make_rootfs() {
+	local R
+
+	cmd_make_rootfs_base                ; R=$? ; if ((R)) ; then return $R ; fi
+	cmd_make_rootfs_delta $G_ROOTFS_DIR ; R=$? ; if ((R)) ; then return $R ; fi
 
 	## pack rootfs
 	make_tarbar ${G_ROOTFS_DIR} ${G_ROOTFS_TARBAR_PATH} || {
@@ -1426,6 +1506,22 @@ case $PARAM_CMD in
 		(cmd_make_uboot  &&
 		 cmd_make_kernel &&
 		 cmd_make_rootfs ) || {
+			V_RET_CODE=1;
+		};
+		;;
+	base ) # base: like "all" but without the twonav-specific stuff (kernel and apps)
+		(cmd_make_uboot  &&
+		 cmd_make_rootfs_base ) || {
+			V_RET_CODE=1;
+		};
+		if [ -e rootfs_base ] ; then rm -rf rootfs_base ; fi
+		local TGT="$G_ROOTFS_DIR-base"
+		if [ -e "$TGT" ] ; then rm -rf "$TGT" ; fi
+		mv "$G_ROOTFS_DIR" "$TGT"
+		;;
+	delta ) # "base" + "delta" is equivalent to "all", but avoiding making the rootfs N times
+		(cmd_make_kernel &&
+		 cmd_make_rootfs_delta "$G_ROOTFS_DIR-base" ) || {
 			V_RET_CODE=1;
 		};
 		;;
