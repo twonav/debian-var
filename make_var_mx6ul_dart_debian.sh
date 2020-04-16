@@ -114,7 +114,7 @@ function usage() {
 	echo "Usage:"
 	echo " ./${SCRIPT_NAME} options"
 	echo "Example:"
-	echo " sudo ./${SCRIPT_NAME} -c package -t twonav-aventura-2018"
+	echo " sudo ./${SCRIPT_NAME} -c package"
 	echo ""
 	echo "Options:"
 	echo "  -h|--help   -- print this help"
@@ -228,8 +228,8 @@ readonly G_ROOTFS_TARBAR_PATH="${PARAM_OUTPUT_DIR}/${DEF_ROOTFS_TARBAR_NAME}"
 ## device type: twonav-aventura/trail-2018/crosstop-2018
 readonly DEVICE="$PARAM_DEVICE_TYPE"
 
-#Provisional until we define different kernels on the go.
-readonly KERNEL_NAME="4.1.15-"$DEVICE
+# Kernel name
+readonly KERNEL_NAME="4.1.15-twonav-2018"
 
 # Parse kernel version from file
 readonly TWONAV_KERNEL_VERSION_PATH="${G_LINUX_KERNEL_SRC_DIR}/twonav_kernel_version"
@@ -237,7 +237,7 @@ readonly TWONAV_KERNEL_VERSION_PATH="${G_LINUX_KERNEL_SRC_DIR}/twonav_kernel_ver
 ## defconfig
 readonly G_LINUX_KERNEL_DEF_CONFIG="imx6ul-var-dart-${DEVICE}_defconfig"
 
-readonly G_KERNEL_PACKAGES="linux-headers-4.1.15-$DEVICE linux-image-4.1.15-$DEVICE"
+readonly G_KERNEL_PACKAGES="linux-headers-$KERNEL_NAME linux-image-$KERNEL_NAME"
 readonly G_TWONAV_PACKAGES=$DEVICE
 
 ##uboot formatted name
