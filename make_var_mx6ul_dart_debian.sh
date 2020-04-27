@@ -768,6 +768,36 @@ function make_kernel_modules() {
 	return 0;
 }
 
+###################### Twonav kernel package fix for older kernel  packages ##########
+function pkg_info_gen() {
+	local OLD_KERN_BRANDS="twonav os"
+	readonly OLD_KERN_MODELS="trail aventura"
+	echo -n "$1"
+	local i j cnt=0
+	for i in $OLD_KERN_BRANDS ; do for j in $OLD_KERN_MODELS ; do
+		if ((cnt++ > 0)) ; then echo "," ; fi
+		echo -en "\t$2-$i-$j-2018 (<= $3)"
+	done ; done
+	echo
+}
+
+function fix_unified_kernel_control_files() {
+	local i
+	local KERN_IMAGE_BASE_NAME="linux-image-4.1.15"
+	local KERN_HEADERS_BASE_NAME="linux-headers-4.1.15"
+	local LINUX_IMAGE_DEBIAN_PATH=${1}/debian/$KERN_IMAGE_BASE_NAME-$KERNEL_NAME/DEBIAN
+	local LINUX_HEADERS_DEBIAN_PATH=${1}/debian/$KERN_HEADERS_BASE_NAME-$KERNEL_NAME/DEBIAN
+	local BREAK_VERSION="1.0.19"
+
+	for i in "Breaks:" "Replaces:" ; do
+		pkg_info_gen "$i" $KERN_IMAGE_BASE_NAME $BREAK_VERSION>> $LINUX_IMAGE_DEBIAN_PATH/control
+		pkg_info_gen "$i" $KERN_HEADERS_BASE_NAME $BREAK_VERSION >> $LINUX_HEADERS_DEBIAN_PATH/control
+	done
+}
+# ###############################################################################################
+
+
+
 # build linux kernel package
 # $1 -- cross compiller prefix
 # $2 -- linux dirname
@@ -786,12 +816,20 @@ function build_kernel_package() {
 	#cp -r ${3}/lib/modules/$KERNEL_NAME/updates ${2}/debian/linux-image-$KERNEL_NAME/lib/modules/$KERNEL_NAME/
 	#cp ${3}/lib/modules/$KERNEL_NAME/modules.*  ${2}/debian/linux-image-$KERNEL_NAME/lib/modules/$KERNEL_NAME/
 	
+	pr_info "Kernel package: Copying all dtb to kernel package"
 	for dtb in $G_TWONAV_DTB
 	do
 		cp "${2}/arch/arm/boot/dts/$dtb" ${2}/debian/linux-image-$KERNEL_NAME/boot	
 	done
-		
+	
+	## adds breaks/replaces for new unified kernel
+	pr_info "Kernel package: Applying fix to control files (break/replace old packages)"
+	fix_unified_kernel_control_files $2
+
+	pr_info "Kernel package: Copying zImage"
 	cp ${2}/arch/arm/boot/zImage ${2}/debian/linux-image-$KERNEL_NAME/boot
+
+	pr_info "Kernel package: Building..."
 	dpkg --build ${2}/debian/linux-image-$KERNEL_NAME ..
 
 	mv ../*.deb ${4}/;
