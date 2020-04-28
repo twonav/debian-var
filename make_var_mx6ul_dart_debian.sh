@@ -771,7 +771,7 @@ function make_kernel_modules() {
 ###################### Twonav kernel package fix for older kernel  packages ##########
 function pkg_info_gen() {
 	local OLD_KERN_BRANDS="twonav os"
-	readonly OLD_KERN_MODELS="trail aventura"
+	local OLD_KERN_MODELS="trail aventura"
 	echo -n "$1"
 	local i j cnt=0
 	for i in $OLD_KERN_BRANDS ; do for j in $OLD_KERN_MODELS ; do
@@ -783,8 +783,8 @@ function pkg_info_gen() {
 
 function fix_unified_kernel_control_files() {
 	local i
-	local KERN_IMAGE_BASE_NAME="linux-image-4.1.15"
-	local KERN_HEADERS_BASE_NAME="linux-headers-4.1.15"
+	local KERN_IMAGE_BASE_NAME="linux-image"
+	local KERN_HEADERS_BASE_NAME="linux-headers"
 	local LINUX_IMAGE_DEBIAN_PATH=${1}/debian/$KERN_IMAGE_BASE_NAME-$KERNEL_NAME/DEBIAN
 	local LINUX_HEADERS_DEBIAN_PATH=${1}/debian/$KERN_HEADERS_BASE_NAME-$KERNEL_NAME/DEBIAN
 	local BREAK_VERSION="1.0.19"
@@ -804,7 +804,6 @@ function fix_unified_kernel_control_files() {
 # $3 -- rootfs dirname
 # $4 -- out patch
 function build_kernel_package() {
-
 	readonly KERNEL_VERSION=`cat ${TWONAV_KERNEL_VERSION_PATH}`
 	cd ${2}
 	if [ "$UBUNTU_VERSION" -ge 16 ]; then
@@ -821,7 +820,7 @@ function build_kernel_package() {
 	do
 		cp "${2}/arch/arm/boot/dts/$dtb" ${2}/debian/linux-image-$KERNEL_NAME/boot	
 	done
-	
+
 	## adds breaks/replaces for new unified kernel
 	pr_info "Kernel package: Applying fix to control files (break/replace old packages)"
 	fix_unified_kernel_control_files $2
@@ -1441,6 +1440,11 @@ case $PARAM_CMD in
 		(cmd_make_kernel &&
 		cmd_make_kmodules &&
 		cmd_build_kernel_package ) || {
+			V_RET_CODE=1;
+		};
+		;;
+	package_only )
+		cmd_build_kernel_package || {
 			V_RET_CODE=1;
 		};
 		;;
