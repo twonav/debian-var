@@ -61,9 +61,11 @@ G_LINUX_KERNEL_GIT="https://github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
 
-readonly BRANDS="os twonav"                                                     
-readonly MODELS="aventura crosstop trail"                                       
-readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $(for i in $BRANDS ; do for j in $MODELS ; do echo imx6ull-var-dart-$i-$j-2018.dtb ; done ; done)"
+readonly TWONAV_MODELS="aventura trail crosstop crosstia crosskyo"
+readonly TWONAV_DEVICES="$(for i in $TWONAV_MODELS ; do echo imx6ull-var-dart-twonav-$i-2018.dtb ; done)"
+readonly OS_MODELS="aventura trail"
+readonly OS_DEVICES="$(for i in $OS_MODELS ; do echo imx6ull-var-dart-os-$i-2018.dtb ; done)"
+readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $TWONAV_DEVICES $OS_DEVICES"
 
 ## uboot
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
