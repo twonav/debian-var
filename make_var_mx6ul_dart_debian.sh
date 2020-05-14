@@ -59,7 +59,9 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
 G_LINUX_KERNEL_GIT="https://github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
-readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
+#readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
+## TWON-16900: Rely on old commit for 1.0.20 version
+readonly G_LINUX_KERNEL_BRANCH="TWON-16900-kernel-1-0-20"
 readonly G_LINUX_DTB='imx6ul-var-dart-emmc_wifi.dtb imx6ul-var-dart-nand_wifi.dtb imx6ul-var-dart-sd_emmc.dtb imx6ul-var-dart-sd_nand.dtb imx6ull-var-dart-emmc_wifi.dtb imx6ull-var-dart-sd_emmc.dtb imx6ull-var-dart-nand_wifi.dtb imx6ull-var-dart-sd_nand.dtb imx6ul-var-dart-5g-emmc_wifi.dtb imx6ull-var-dart-5g-emmc_wifi.dtb imx6ul-var-dart-5g-nand_wifi.dtb imx6ull-var-dart-5g-nand_wifi.dtb'
 
 
@@ -67,7 +69,9 @@ readonly G_LINUX_DTB='imx6ul-var-dart-emmc_wifi.dtb imx6ul-var-dart-nand_wifi.dt
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
 G_UBOOT_GIT="https://github.com/twonav/uboot-imx.git"
 readonly G_UBOOT_GIT_UP="https://repo_username:repo_password@github.com/twonav/uboot-imx.git"
-readonly G_UBOOT_BRANCH="imx_v2016.03_4.1.15_2.0.0_twonav"
+#readonly G_UBOOT_BRANCH="imx_v2016.03_4.1.15_2.0.0_twonav"
+## TWON-16900: Rely on old commit for 1.0.20 version
+readonly G_UBOOT_BRANCH="TWON-16900-kernel-1-0-20"
 readonly G_UBOOT_DEF_CONFIG_MMC='mx6ull_14x14_evk_emmc_defconfig'
 readonly G_UBOOT_DEF_CONFIG_NAND='mx6ul_var_dart_nand_defconfig'
 readonly G_UBOOT_NAME_FOR_EMMC='u-boot.imx'
@@ -761,6 +765,16 @@ function make_kernel_modules() {
 	return 0;
 }
 
+function patch_prerm_on_linux_image_file() {
+	local KERN_IMAGE_BASE_NAME="linux-image"
+	local LINUX_IMAGE_PRERM_FILE=${1}/debian/$KERN_IMAGE_BASE_NAME-$KERNEL_NAME/DEBIAN/prerm
+	local stringReplaceFrom="exit 1;    #Operation not permitted"
+    local stringReplaceWith="print STDERR \"TWON-16900: Migrating to unified kernel, so proceeding with removing running kernel image.\n\"; #TWON-16900 exit 1;    #Operation not permitted"
+
+	sed  's/'"$stringReplaceFrom"'/'"$stringReplaceWith"'/g' $LINUX_IMAGE_PRERM_FILE > tmp.txt && mv tmp.txt $LINUX_IMAGE_PRERM_FILE
+	chmod +x $LINUX_IMAGE_PRERM_FILE
+}
+
 # build linux kernel package
 # $1 -- cross compiller prefix
 # $2 -- linux dirname
@@ -778,8 +792,17 @@ function build_kernel_package() {
 
 	#cp -r ${3}/lib/modules/$KERNEL_NAME/updates ${2}/debian/linux-image-$KERNEL_NAME/lib/modules/$KERNEL_NAME/
 	#cp ${3}/lib/modules/$KERNEL_NAME/modules.*  ${2}/debian/linux-image-$KERNEL_NAME/lib/modules/$KERNEL_NAME/
+
+	pr_info "Kernel package: Copying dtb to kernel package"
 	cp ${2}/arch/arm/boot/dts/*-var-dart-*emmc_wifi.dtb ${2}/debian/linux-image-$KERNEL_NAME/boot
+
+	pr_info "TWON-16900 Kernel package: Patch prerm file for unified kernel transition"
+	patch_prerm_on_linux_image_file $2
+
+	pr_info "Kernel package: Copying zImage"
 	cp ${2}/arch/arm/boot/zImage ${2}/debian/linux-image-$KERNEL_NAME/boot
+
+	pr_info "Kernel package: Building..."
 	dpkg --build ${2}/debian/linux-image-$KERNEL_NAME ..
 
 	mv ../*.deb ${4}/;
