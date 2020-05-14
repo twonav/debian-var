@@ -769,7 +769,7 @@ function patch_prerm_on_linux_image_file() {
 	local KERN_IMAGE_BASE_NAME="linux-image"
 	local LINUX_IMAGE_PRERM_FILE=${1}/debian/$KERN_IMAGE_BASE_NAME-$KERNEL_NAME/DEBIAN/prerm
 	local stringReplaceFrom="exit 1;    #Operation not permitted"
-    local stringReplaceWith="print STDERR \"TWON-16900: Migrating to unified kernel, so proceeding with removing running kernel image.\n\"; #TWON-16900 exit 1;    #Operation not permitted"
+    local stringReplaceWith="print STDERR \"TWON-16900: Migrating to unified kernel, so proceeding with removing running kernel image.\\n\"; #TWON-16900 exit 1;    #Operation not permitted"
 
 	sed  's/'"$stringReplaceFrom"'/'"$stringReplaceWith"'/g' $LINUX_IMAGE_PRERM_FILE > tmp.txt && mv tmp.txt $LINUX_IMAGE_PRERM_FILE
 	chmod +x $LINUX_IMAGE_PRERM_FILE
