@@ -57,10 +57,10 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 
 ## LINUX kernel: git, config, paths and etc
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
-G_LINUX_KERNEL_GIT="git@github.com/twonav/linux-2.6-imx.git"
+G_LINUX_KERNEL_GIT="git@github.com:twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
 #readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
-readonly G_LINUX_KERNEL_BRANCH="TWON-17177-TWON-17178"
+readonly G_LINUX_KERNEL_BRANCH="TWON-17177-17178"
 
 readonly BRANDS="os twonav"                                                     
 readonly MODELS="aventura crosstop trail"                                       
@@ -69,7 +69,7 @@ readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $(for i in $BRANDS ; do fo
 ## uboot
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
 #G_UBOOT_GIT="https://github.com/twonav/uboot-imx.git"
-G_UBOOT_GIT="git@github.com/twonav/uboot-imx.git"
+G_UBOOT_GIT="git@github.com:twonav/uboot-imx.git"
 readonly G_UBOOT_GIT_UP="https://repo_username:repo_password@github.com/twonav/uboot-imx.git"
 readonly G_UBOOT_BRANCH="imx_v2016.03_4.1.15_2.0.0_twonav"
 readonly G_UBOOT_DEF_CONFIG_MMC='mx6ull_14x14_evk_emmc_defconfig'
@@ -100,7 +100,6 @@ PARAM_REBUILD="0"
 PARAM_CMD="all"
 PARAM_BLOCK_DEVICE="na"
 PARAM_KERNEL_NAME=""
-PARAM_CREDENTIALS="0"
 PARAM_USERNAME=""
 PARAM_PASSWORD=""
 PARAM_DEVICE="ALL"
@@ -152,8 +151,8 @@ function usage() {
 }
 
 ###### parse input arguments ##
-readonly SHORTOPTS="k:c:o:u:p:d:h:r:t:"
-readonly LONGOPTS="instpkg:,cmd:,output:,username:,password:,dev:,help,debug,rebuild,type:"
+readonly SHORTOPTS="k:c:o:u:p:s:d:h:r:t:"
+readonly LONGOPTS="instpkg:,cmd:,output:,username:,password:,sshkey,dev:,help,debug,rebuild,type:"
 
 ARGS=$(getopt -s bash --options ${SHORTOPTS}  \
   --longoptions ${LONGOPTS} --name ${SCRIPT_NAME} -- "$@" )
@@ -1201,20 +1200,12 @@ function cmd_make_deploy() {
 
 	# get kernel repository
 	(( `ls ${G_LINUX_KERNEL_SRC_DIR} 2>/dev/null | wc -l` == 0 )) && {
-		[ "${PARAM_CREDENTIALS}" = "1" ] && {
-			G_LINUX_KERNEL_GIT=${G_LINUX_KERNEL_GIT_UP/repo_username/$PARAM_USERNAME}
-			G_LINUX_KERNEL_GIT=${G_LINUX_KERNEL_GIT/repo_password/$PARAM_PASSWORD}
-		};
 		pr_info "Get kernel repository";
 		get_git_src ${G_LINUX_KERNEL_GIT} ${G_LINUX_KERNEL_BRANCH} ${G_LINUX_KERNEL_SRC_DIR}
 	};
 
 	# get uboot repository
 	(( `ls ${G_UBOOT_SRC_DIR} 2>/dev/null | wc -l` == 0 )) && {
-		[ "${PARAM_CREDENTIALS}" = "1" ] && {
-			G_UBOOT_GIT=${G_UBOOT_GIT_UP/repo_username/$PARAM_USERNAME}
-			G_UBOOT_GIT=${G_UBOOT_GIT/repo_password/$PARAM_PASSWORD}
-		};
 		pr_info "Get uboot repository";
 		get_git_src ${G_UBOOT_GIT} ${G_UBOOT_BRANCH} ${G_UBOOT_SRC_DIR}
 	};

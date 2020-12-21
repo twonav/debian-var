@@ -15,13 +15,13 @@ pipeline {
   stages {
     stage('Deploy') {
       steps {
-        sh "./make_var_mx6ul_dart_debian.sh -c deploy -s"
+        sh "./make_var_mx6ul_dart_debian.sh -c deploy"
       }
     }
 
     stage('Update') {
       steps {
-        sh "./make_var_mx6ul_dart_debian.sh -c update -s"
+        sh "./make_var_mx6ul_dart_debian.sh -c update"
       }
     }
 
