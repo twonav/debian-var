@@ -57,7 +57,7 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 
 ## LINUX kernel: git, config, paths and etc
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
-G_LINUX_KERNEL_GIT="https://github.com/twonav/linux-2.6-imx.git"
+G_LINUX_KERNEL_GIT="git@github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
 #readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
 readonly G_LINUX_KERNEL_BRANCH="TWON-17177-TWON-17178"
@@ -68,7 +68,8 @@ readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $(for i in $BRANDS ; do fo
 
 ## uboot
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
-G_UBOOT_GIT="https://github.com/twonav/uboot-imx.git"
+#G_UBOOT_GIT="https://github.com/twonav/uboot-imx.git"
+G_UBOOT_GIT="git@github.com/twonav/uboot-imx.git"
 readonly G_UBOOT_GIT_UP="https://repo_username:repo_password@github.com/twonav/uboot-imx.git"
 readonly G_UBOOT_BRANCH="imx_v2016.03_4.1.15_2.0.0_twonav"
 readonly G_UBOOT_DEF_CONFIG_MMC='mx6ull_14x14_evk_emmc_defconfig'
@@ -181,6 +182,10 @@ while true; do
 		-p|--password ) # set password for pull repo
 			PARAM_CREDENTIALS=1;
 			PARAM_PASSWORD="$2";
+			shift
+			;;
+		-s|--sshkey ) # set password for pull repo
+			PARAM_CREDENTIALS=2;
 			shift
 			;;
 		-d|--dev ) # block device (for create sdcard)
