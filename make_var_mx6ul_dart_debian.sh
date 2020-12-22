@@ -57,8 +57,8 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 
 ## LINUX kernel: git, config, paths and etc
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
-G_LINUX_KERNEL_GIT="https://github.com/twonav/linux-2.6-imx.git"
-readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
+G_LINUX_KERNEL_GIT="git@github.com:twonav/linux-2.6-imx.git"
+#DNPDNP readonly G_LINUX_KERNEL_GIT_UP="https://repo_username:repo_password@github.com/twonav/linux-2.6-imx.git"
 readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
 
 readonly BRANDS="os twonav"                                                     
@@ -67,8 +67,8 @@ readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $(for i in $BRANDS ; do fo
 
 ## uboot
 readonly G_UBOOT_SRC_DIR="${DEF_SRC_DIR}/uboot"
-G_UBOOT_GIT="https://github.com/twonav/uboot-imx.git"
-readonly G_UBOOT_GIT_UP="https://repo_username:repo_password@github.com/twonav/uboot-imx.git"
+G_UBOOT_GIT="git@github.com:twonav/uboot-imx.git"
+#DNPDNP readonly G_UBOOT_GIT_UP="https://repo_username:repo_password@github.com/twonav/uboot-imx.git"
 readonly G_UBOOT_BRANCH="imx_v2016.03_4.1.15_2.0.0_twonav"
 readonly G_UBOOT_DEF_CONFIG_MMC='mx6ull_14x14_evk_emmc_defconfig'
 readonly G_UBOOT_DEF_CONFIG_NAND='mx6ul_var_dart_nand_defconfig'
@@ -150,8 +150,8 @@ function usage() {
 }
 
 ###### parse input arguments ##
-readonly SHORTOPTS="k:c:o:u:p:d:h:r:t:"
-readonly LONGOPTS="instpkg:,cmd:,output:,username:,password:,dev:,help,debug,rebuild,type:"
+readonly SHORTOPTS="k:c:o:u:p:s:d:h:r:t:"
+readonly LONGOPTS="instpkg:,cmd:,output:,username:,password:,sshkey:,dev:,help,debug,rebuild,type:"
 
 ARGS=$(getopt -s bash --options ${SHORTOPTS}  \
   --longoptions ${LONGOPTS} --name ${SCRIPT_NAME} -- "$@" )
@@ -180,6 +180,11 @@ while true; do
 		-p|--password ) # set password for pull repo
 			PARAM_CREDENTIALS=1;
 			PARAM_PASSWORD="$2";
+			shift
+			;;
+		-s|--sshkey ) # set keyfile for pull repo
+			PARAM_CREDENTIALS=2;
+			PARAM_KEYFILE="$2";
 			shift
 			;;
 		-d|--dev ) # block device (for create sdcard)
@@ -280,13 +285,17 @@ function pr_debug() {
 # $1 - git repository
 # $2 - branch name
 # $3 - output dir
-# $4 - commit id
+# $4 - ssh keyfile
+# $5 - commit id
 function get_git_src() {
+	pr_debug "DEBUG: get_git_src (${1}) (${2}) (${3}) (${4})"
 	# clone src code
+	#ssh-agent bash -c 'ssh-add {$4}; git clone ${1} -b ${2} ${3}'
+	ssh-add {$4}
 	git clone ${1} -b ${2} ${3}
 	cd ${3}
-	if [ ! -z "$4" ]; then
-		git reset --hard ${4}
+	if [ ! -z "$5" ]; then
+		git reset --hard ${5}
 	fi
 	RET=$?
 	cd -
@@ -1200,7 +1209,7 @@ function cmd_make_deploy() {
 			G_LINUX_KERNEL_GIT=${G_LINUX_KERNEL_GIT/repo_password/$PARAM_PASSWORD}
 		};
 		pr_info "Get kernel repository";
-		get_git_src ${G_LINUX_KERNEL_GIT} ${G_LINUX_KERNEL_BRANCH} ${G_LINUX_KERNEL_SRC_DIR}
+		get_git_src ${G_LINUX_KERNEL_GIT} ${G_LINUX_KERNEL_BRANCH} ${G_LINUX_KERNEL_SRC_DIR} ${PARAM_KEYFILE}
 	};
 
 	# get uboot repository
@@ -1210,7 +1219,7 @@ function cmd_make_deploy() {
 			G_UBOOT_GIT=${G_UBOOT_GIT/repo_password/$PARAM_PASSWORD}
 		};
 		pr_info "Get uboot repository";
-		get_git_src ${G_UBOOT_GIT} ${G_UBOOT_BRANCH} ${G_UBOOT_SRC_DIR}
+		get_git_src ${G_UBOOT_GIT} ${G_UBOOT_BRANCH} ${G_UBOOT_SRC_DIR} ${PARAM_KEYFILE}
 	};
 
 	# get linaro toolchain

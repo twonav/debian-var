@@ -15,20 +15,18 @@ pipeline {
   stages {
     stage('Deploy') {
       steps {
-        withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
-        			usernameVariable: 'USERNAME', 
-        			passwordVariable: 'PASSWORD')]) {
-          sh "./make_var_mx6ul_dart_debian.sh -c deploy -u $USERNAME -p $PASSWORD"
+        withCredentials(bindings: [sshUserPrivateKey(credentialsId: 'github_preshared_ssh_2', 
+        			keyFileVariable: 'KEYFILE')]) {
+          sh "./make_var_mx6ul_dart_debian.sh -c deploy -s $KEYFILE"
         }
       }
     }
 
     stage('Update') {
       steps {
-        withCredentials(bindings: [usernamePassword(credentialsId: 'github_credentials', 
-        			usernameVariable: 'USERNAME', 
-        			passwordVariable: 'PASSWORD')]) {
-          sh "./make_var_mx6ul_dart_debian.sh -c update -u $USERNAME -p $PASSWORD"
+        withCredentials(bindings: [sshUserPrivateKey(credentialsId: 'github_preshared_ssh_2', 
+        			keyFileVariable: 'KEYFILE')]) {
+          sh "./make_var_mx6ul_dart_debian.sh -c update -s $KEYFILE"
         }
 
       }
