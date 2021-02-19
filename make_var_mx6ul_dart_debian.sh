@@ -342,9 +342,9 @@ function make_debian_rootfs() {
 echo "deb $PARAM_DEB_LOCAL_MIRROR ${DEB_RELEASE} main contrib non-free
 " > etc/apt/sources.list
 
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/TwoNav/" >> etc/apt/sources.list.d/twonav.list
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Kernel/" >> etc/apt/sources.list.d/twonav.list
-echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018/Production/Extras/" >> etc/apt/sources.list.d/twonav.list
+echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018_UnifiedKernel/Production/TwoNav/" >> etc/apt/sources.list.d/twonav.list
+echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018_UnifiedKernel/Production/Kernel/" >> etc/apt/sources.list.d/twonav.list
+echo "deb http://apt.twonav.com/ CompeGPS_Channels/Product2018_UnifiedKernel/Production/Extras/" >> etc/apt/sources.list.d/twonav.list
 
 echo "
 # /dev/mmcblk0p1  /boot           vfat    defaults        0       0
