@@ -58,8 +58,8 @@ readonly SDCARD_ROOTFS_DIR=/media/$(logname)/rootfs
 ## LINUX kernel: git, config, paths and etc
 readonly G_LINUX_KERNEL_SRC_DIR="${DEF_SRC_DIR}/kernel"
 G_LINUX_KERNEL_GIT="git@github.com:twonav/linux-2.6-imx.git"
-readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
-
+#readonly G_LINUX_KERNEL_BRANCH="imx-rel_imx_4.1.15_2.0.0_twonav"
+readonly G_LINUX_KERNEL_BRANCH="20210609-TWON-16934-AtmelIntegration2"
 readonly BRANDS="os twonav"                                                     
 readonly MODELS="aventura crosstop trail"                                       
 readonly G_TWONAV_DTB="imx6ull-var-dart-emmc_wifi.dtb $(for i in $BRANDS ; do for j in $MODELS ; do echo imx6ull-var-dart-$i-$j-2018.dtb ; done ; done)"
